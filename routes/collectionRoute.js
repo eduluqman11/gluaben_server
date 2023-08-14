@@ -1,7 +1,10 @@
 const express = require('express')
 const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
 const collectionModel = require('../models/collectionModel')
 const Router = express.Router()
+const verifyToken = require('../utils/functions')
 
 
 
@@ -15,22 +18,43 @@ const storage = multer.diskStorage({
     }
 })
 
-const upload = multer({storage:storage})
+const fileFilter = (req, file, cb) => {
+    const allowedFileTypes = ['.jpg', '.jpeg', '.png', '.jfif','.avif'];
+    const extname = path.extname(file.originalname).toLowerCase();
+    if (allowedFileTypes.includes(extname)) {
+      cb(null, true); 
+    } else {
+      cb(new Error('Only jpg, jpeg, png, and jfif files are allowed'));
+    }
+  };
+
+const upload = multer({storage:storage, fileFilter: fileFilter})
 Router.post('/collection/upload',upload.single('image'),async(req,res)=>{
     try{    
             const uploadData = await collectionModel.create({
-                collectionName: req.body.collecName,
+                collectionName: req.body.collectionName,
                 collectionImage :req.file.filename
             })
             if(uploadData){
-                    res.status(200).json({message:"sucessfully uploaded",data:uploadData})
+                const imageUrl = `http://localhost:3000/${req.file.filename}`;
+                 res.status(200).json({message:"sucessfully uploaded",data:uploadData, image:imageUrl})
             }else{
-                res.status(400).json*{message:"something went wrong"}
+                res.status(400).json({message:"something went wrong"})
             }
     }catch(error){
         res.status(500).json({error:error.message})
     }
 })
+
+
+
+Router.get('/collection/images', (req, res) => {
+    // Read the 'uploads' directory and send the list of image filenames
+    const images = fs.readdirSync('./collectionUploads');
+    res.json(images);
+  });
+
+
 
 Router.get('/collection/getCollections',async(req,res)=>{
     try{

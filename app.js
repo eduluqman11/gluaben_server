@@ -13,6 +13,8 @@ const collection = require('./routes/collectionRoute')
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors({}))
+app.use(express.static('collectionUploads'))
+
 
 app.use((req, res, next) => {
     console.log(`Requests => ${req.method.toUpperCase()}  http://locahost:3000${req.url} Status:${res.statusCode} `)
