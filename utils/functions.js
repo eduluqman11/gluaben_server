@@ -10,7 +10,7 @@ const verifyToken = async (req, res, next) => {
         .json({ success: false, message: "Error! Token was not provided." });
     }
     try {
-      const decodedToken = jwt.verify(token, process.env.SECRETKEY);
+       jwt.verify(token, process.env.SECRETKEY);
       next();
     } catch (error) {
       return res.status(401).json({ message: "Invalid signature" });

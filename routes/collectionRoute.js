@@ -56,7 +56,7 @@ Router.get('/collection/images', (req, res) => {
 
 
 
-Router.get('/collection/getCollections',async(req,res)=>{
+Router.get('/collection/getCollections',verifyToken,async(req,res)=>{
     try{
         const getCollection = await collectionModel.find();
         if(getCollection){
@@ -69,13 +69,27 @@ Router.get('/collection/getCollections',async(req,res)=>{
     }
 })
 
-Router.delete('/collection/remove/:collectionName',async(req,res)=>{
-    console.log(req.params.collectionName)
-    // try{
-    //     const deletedata = await collectionModel.deleteOne({collectionName:req.params.collectionName})
-    // }catch(error){
-
-    // }
+Router.delete('/collection/remove',verifyToken,async(req,res)=>{
+    console.log(req.query.imageName)
+    console.log(req.query.id)
+    const parentImagDir = path.join(__dirname,'..')
+    const imagDir = path.join(parentImagDir,'collectionUploads')
+    const imgName = path.join(imagDir,req.query.imageName)
+    try{
+        const deletedata = await collectionModel.deleteOne({_id:req.query.id})
+        if(deletedata){
+            fs.unlink(imgName,(err)=>{
+                if (err) {
+                    console.error('Error deleting file:', err.message);
+                } else {
+                    console.log('File deleted successfully');
+                }
+            })
+            res.status(200).json({data:deletedata , message:'sucessfully deleted!!'})
+        }
+    }catch(error){
+        res.status(500).json({error:error.message})
+    }
 })
 
 module.exports = Router
